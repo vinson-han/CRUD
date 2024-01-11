@@ -5,33 +5,39 @@ const app = express();
 const PORT = process.env.PORT;
 const uri = process.env.URI;
 const client = new MongoClient(uri);
+
+app.set("view engine", "ejs");
+app.use(express.static("public"));
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
+app.get("/", async (req, res) => {
+  await client.connect();
+  const db = await client.db("practice");
+  const usersCollection = db.collection("users");
+  usersCollection
+    .find()
+    .toArray()
+    .then((results) => {
+      res.render("index.ejs", { usersCollection: results });
+    })
+    .catch((error) => console.log(error));
 });
 
-app.post("/users", (req, res) => {
-  console.log(req.body);
+app.post("/users", async (req, res) => {
+  await client.connect();
+  const db = await client.db("practice");
+  const usersCollection = db.collection("users");
+
+  usersCollection
+    .insertOne(req.body)
+    .then((result) => {
+      res.redirect("/");
+    })
+    .catch((error) => console.log(error));
 });
 
 app.listen(PORT, () => {
   console.log(`Server is live! Listening at port ${PORT}`);
 });
-
-async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
-  }
-}
-run().catch(console.dir);
