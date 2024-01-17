@@ -1,10 +1,9 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const { MongoClient } = require("mongodb");
 const app = express();
+
+const { MongoClient } = require("mongodb");
 const PORT = process.env.PORT;
-const uri = process.env.URI;
-const client = new MongoClient(uri);
 
 app.set("view engine", "ejs");
 app.use(express.static("public"));
@@ -12,10 +11,21 @@ app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+const mongoClient = new MongoClient(process.env.URI);
+
+let db;
+let usersCollection;
+
+mongoClient
+  .connect()
+  .then((client) => {
+    db = client.db("practice");
+    usersCollection = db.collection("users");
+  })
+  .catch((error) => console.log(error));
+
 app.get("/", async (req, res) => {
-  await client.connect();
-  const db = await client.db("practice");
-  const usersCollection = db.collection("users");
+  const usersCollection = await db.collection("users");
   usersCollection
     .find()
     .toArray()
@@ -26,9 +36,7 @@ app.get("/", async (req, res) => {
 });
 
 app.post("/users", async (req, res) => {
-  await client.connect();
-  const db = await client.db("practice");
-  const usersCollection = db.collection("users");
+  const usersCollection = await db.collection("users");
 
   usersCollection
     .insertOne(req.body)
@@ -36,6 +44,40 @@ app.post("/users", async (req, res) => {
       res.redirect("/");
     })
     .catch((error) => console.log(error));
+});
+
+app.put("/users", (req, res) => {
+  usersCollection
+    .findOneAndUpdate(
+      { username: req.body.username },
+      {
+        $set: {
+          username: req.body.username,
+          password: req.body.password,
+        },
+      },
+      {
+        upsert: false,
+      },
+      {
+        returnNewDocument: true,
+      }
+    )
+    .then((result) => {
+      res.json("Success");
+      return res;
+    })
+    .catch((error) => console.error(error));
+});
+app.delete("/users", async (req, res) => {
+  usersCollection
+    .deleteOne({ username: req.body.username })
+    .then((result) => {
+      console.log(`Deleted ${req.body.username}`);
+      console.log(result);
+      res.json("Deleted user");
+    })
+    .catch((error) => console.error(error));
 });
 
 app.listen(PORT, () => {
