@@ -12,6 +12,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 const mongoClient = new MongoClient(process.env.URI);
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 
 let db;
 let usersCollection;
@@ -25,25 +27,61 @@ mongoClient
   .catch((error) => console.log(error));
 
 app.get("/", async (req, res) => {
-  const usersCollection = await db.collection("users");
-  usersCollection
-    .find()
-    .toArray()
+  const body = { users: null, posts: null };
+
+  const users = await prisma.user
+    .findMany()
     .then((results) => {
-      res.render("index.ejs", { usersCollection: results });
+      body.users = results;
     })
-    .catch((error) => console.log(error));
+    .catch((error) => console.error(error));
+
+  const posts = await prisma.post
+    .findMany()
+    .then((results) => {
+      body.posts = results;
+    })
+    .catch((error) => console.error(error));
+  console.log(body.posts);
+  res.render("index.ejs", { body: body });
 });
 
-app.post("/users", async (req, res) => {
-  const usersCollection = await db.collection("users");
-
-  usersCollection
-    .insertOne(req.body)
+app.post("/users", (req, res) => {
+  const { username, password } = req.body;
+  prisma.user
+    .create({
+      data: {
+        username,
+        password,
+      },
+    })
     .then((result) => {
       res.redirect("/");
     })
-    .catch((error) => console.log(error));
+    .catch((error) => {
+      // Handle errors
+      console.error(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    });
+});
+
+app.post("/posts", (req, res) => {
+  const { title, body } = req.body;
+  prisma.post
+    .create({
+      data: {
+        title,
+        body,
+      },
+    })
+    .then((result) => {
+      console.log(result);
+      res.redirect("/");
+    })
+    .catch((error) => {
+      console.log(error(error));
+      res.status(500).json({ error: "Internal Server Error" });
+    });
 });
 
 app.put("/users", (req, res) => {

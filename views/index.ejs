@@ -8,16 +8,11 @@
   <body>
     <h1>Enter user</h1>
     <form action="/users" method="POST">
+      <input type="text" id="username" placeholder="Username" name="username" />
       <input
-        type="text"
-        id="username"
-        placeholder="New Username"
-        name="username"
-      />
-      <input
-        type="text"
+        type="password"
         id="password"
-        placeholder="New Password"
+        placeholder="Password"
         name="password"
       />
       <button type="submit">Submit</button>
@@ -25,15 +20,31 @@
     <button id="update-button">Replace password</button>
     <button id="delete-button">delete user</button>
     <ul class="users">
-      <% for(var i=0; i < usersCollection.length; i++) {%>
+      <% for(var i=0; i < body.users.length; i++) {%>
       <li class="user">
-        <span> <%= usersCollection[i].username %> </span>:
-
-        <span> <%= usersCollection[i].password %> </span>
-        <button id="edit-button">Edit</button>
+        <!-- Output name from the iterated user object -->
+        <span> <%= body.users[i].username %> </span>:
+        <!-- Output quote from the iterated user object -->
+        <span> <%= body.users[i].password %> </span>
       </li>
       <% } %>
     </ul>
+    <form action="/posts" method="POST">
+      <input type="text" id="title" placeholder="Title" name="title" />
+      <input type="text" id="body" placeholder="Body" name="body" />
+      <button type="submit">Post</button>
+    </form>
+    <div>
+      <% for(let i =0; i < body.posts.length; i++) {%>
+      <li>
+        <span><%= body.posts[i].title %></span>
+        <span><%= body.posts[i].body %></span>
+      </li>
+
+      <% } %>
+      <!-- add the posts object logic here -->
+      <!-- the posts should render here -->
+    </div>
     <script src="/main.js"></script>
   </body>
 </html>

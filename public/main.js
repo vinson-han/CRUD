@@ -11,7 +11,6 @@ deleteButton.addEventListener("click", () => {
     }),
   })
     .then((res) => {
-      console.log("deleted");
       if (res.ok) return res.json();
     })
     .then((res) => {
