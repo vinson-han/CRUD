@@ -3,9 +3,9 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="#">
+  <!-- <a href="#">
     <img src="#" alt="Logo" width="80" height="80">
-  </a>
+  </a> -->
 
   <h3 align="center">CRUD APP</h3>
 
